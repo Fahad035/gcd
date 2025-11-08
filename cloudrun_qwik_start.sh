@@ -1,47 +1,63 @@
 #!/bin/bash
 # ===========================================================
-# Google Cloud Arcade Lab: Cloud Run Functions Qwik Start
+# Google Cloud Arcade Lab: Qwik Starter Firebase Hosting
 # Author: Fahad035
-# Description: Automates deployment of a Qwik Starter app to Cloud Run
+# Description: Automates deployment of Qwik Starter app to Firebase Hosting
 # ===========================================================
 
-set -e
+set -e  # Exit immediately if a command fails
 
-echo "🚀 Starting Cloud Run Functions Qwik Start setup..."
+echo "🚀 Starting Qwik Starter Firebase Hosting setup..."
 
 # Get current project ID
 export PROJECT_ID=$(gcloud config get-value project)
 echo "🧩 Using project: $PROJECT_ID"
 
 # Enable required APIs
-echo "🔧 Enabling required Google Cloud APIs..."
+echo "🔧 Enabling Firebase and Hosting APIs..."
 gcloud services enable \
-  cloudfunctions.googleapis.com \
-  cloudbuild.googleapis.com \
-  run.googleapis.com
+  firebase.googleapis.com \
+  firestore.googleapis.com \
+  hosting.googleapis.com
+
+# Install Node.js if missing (required for Qwik)
+if ! command -v node &> /dev/null; then
+  echo "⬇️ Installing Node.js..."
+  sudo apt-get update
+  sudo apt-get install -y nodejs npm
+else
+  echo "✅ Node.js already installed."
+fi
+
+# Install Firebase CLI if missing
+if ! command -v firebase &> /dev/null; then
+  echo "⬇️ Installing Firebase CLI..."
+  curl -sL https://firebase.tools | bash
+else
+  echo "✅ Firebase CLI already installed."
+fi
 
 # Clone Qwik Starter app
 echo "📦 Cloning Qwik Starter project..."
 git clone https://github.com/BuilderIO/qwik-starter.git
 cd qwik-starter
 
-# Build Docker container
-echo "🛠️ Building Docker container..."
-gcloud builds submit --tag gcr.io/$PROJECT_ID/qwik-starter
+# Install dependencies and build
+echo "🏗️ Installing dependencies and building Qwik app..."
+npm install
+npm run build
 
-# Deploy to Cloud Run
-echo "☁️ Deploying to Cloud Run..."
-gcloud run deploy qwik-starter \
-  --image gcr.io/$PROJECT_ID/qwik-starter \
-  --platform managed \
-  --region us-central1 \
-  --allow-unauthenticated
+# Initialize Firebase Hosting (non-interactive)
+echo "🔥 Initializing Firebase Hosting..."
+firebase use --add $PROJECT_ID
+firebase init hosting --project $PROJECT_ID --public dist --non-interactive --force
 
-# Show deployed URL
+# Deploy to Firebase Hosting
+echo "🚀 Deploying Qwik Starter app to Firebase Hosting..."
+firebase deploy --only hosting --project $PROJECT_ID
+
+# Print live URL
 echo "🌐 Your Qwik Starter app is live at:"
-gcloud run services describe qwik-starter \
-  --platform managed \
-  --region us-central1 \
-  --format 'value(status.url)'
+firebase hosting:sites:list --project $PROJECT_ID | grep "https"
 
-echo "✅ Cloud Run Functions Qwik Start setup completed!"
+echo "✅ Qwik Starter Firebase Hosting deployment completed!"
