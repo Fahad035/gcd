@@ -1,7 +1,7 @@
 #!/bin/bash
 # ===========================================================
 # Google Cloud Arcade Lab: Flutter Qwik Start (Firebase Hosting)
-# Author: YourName
+# Author: fahad
 # Description: Automates setup and deployment of Flutter Web App to Firebase Hosting
 # ===========================================================
 
